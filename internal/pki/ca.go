@@ -1,7 +1,9 @@
+// Package pki provides Public Key Infrastructure (PKI) utilities for creating and managing
+// certificates, including Certificate Authority (CA) certificates, server certificates,
+// and client certificates for secure communication.
 package pki
 
 import (
-	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -11,54 +13,65 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/kinoakter/openvpn-pki-go/internal/db"
 	"math/big"
 	"time"
 )
 
-func CreateCA(name string) error {
+const DefaultCAValidityYears = 3
+
+// CreateCACert creates a new Certificate Authority (CA) certificate and its corresponding private key.
+// It generates an ECDSA key pair using the P-521 curve and creates a self-signed CA certificate
+// with the specified common name and validity period.
+//
+// Parameters:
+//   - commonName: The CA certificate's subject common name
+//   - validYears: The number of years the certificate will be valid (default to 3 if 0 is provided)
+//
+// Returns:
+//   - certPEM: The CA certificate in PEM format
+//   - keyPEM: The private key in PEM format
+//   - err: Error if certificate creation fails
+func CreateCACert(commonName string, validYears int) (certPEM, keyPEM []byte, err error) {
+	if validYears == 0 {
+		validYears = DefaultCAValidityYears // By default, 3 years.
+	}
+
 	// Generate ECDSA key (secp521r1)
-	privateKey, err := ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
+	var privateKey *ecdsa.PrivateKey
+	privateKey, err = ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
 	if err != nil {
-		return fmt.Errorf("failed to generate ECDSA key: %v", err)
+		return nil, nil, fmt.Errorf("failed to generate ECDSA key: %v", err)
 	}
 
 	// Create certificate template
 	serial := sha512.Sum512([]byte(uuid.New().String())) // large serial based on UUID hash
+	var subjectKeyId = sha512.Sum512_256(serial[:])
 	template := &x509.Certificate{
-		SerialNumber: new(big.Int).SetBytes(serial[:20]),
-		Subject:      pkix.Name{CommonName: name},
-		NotBefore:    time.Now(),
-		NotAfter:     time.Now().AddDate(10, 0, 0), // valid for 10 years
-
+		SerialNumber:          new(big.Int).SetBytes(serial[:20]),
+		Subject:               pkix.Name{CommonName: commonName},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().AddDate(validYears, 0, 0),
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 		BasicConstraintsValid: true,
 		IsCA:                  true,
+		SubjectKeyId:          subjectKeyId[:],
 	}
 
 	// Self-sign the certificate
-	derBytes, err := x509.CreateCertificate(rand.Reader, template, template, &privateKey.PublicKey, privateKey)
+	var derBytes []byte
+	derBytes, err = x509.CreateCertificate(rand.Reader, template, template, &privateKey.PublicKey, privateKey)
 	if err != nil {
-		return fmt.Errorf("failed to create CA certificate: %v", err)
+		return nil, nil, fmt.Errorf("failed to create CA certificate: %v", err)
 	}
 
 	// Encode cert and key as PEM
-	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
-	keyBytes, err := x509.MarshalECPrivateKey(privateKey)
+	certPEM = pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
+	var keyBytes []byte
+	keyBytes, err = x509.MarshalECPrivateKey(privateKey)
 	if err != nil {
-		return fmt.Errorf("failed to marshal private key: %v", err)
+		return nil, nil, fmt.Errorf("failed to marshal private key: %v", err)
 	}
-	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyBytes})
+	keyPEM = pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyBytes})
 
-	// Store in DB
-	_, err = db.DB.Exec(context.Background(),
-		`INSERT INTO ca (id, name, certificate, private_key) VALUES ($1, $2, $3, $4)`,
-		uuid.New(), name, string(certPEM), string(keyPEM),
-	)
-
-	if err != nil {
-		return fmt.Errorf("failed to store CA in database: %v", err)
-	}
-
-	return nil
+	return
 }
