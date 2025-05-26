@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/kinoakter/openvpn-pki-go/internal/domain/service"
+	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
@@ -16,25 +16,23 @@ func NewClientCertHandler(service *service.ClientCertificateService) *ClientCert
 	}
 }
 
-func (h *ClientCertHandler) RegisterRoutes(router *gin.RouterGroup) {
+func (h *ClientCertHandler) RegisterRoutes(router *echo.Group) {
 	router.POST("/client-cert", h.IssueNewClientCert)
 }
 
-func (h *ClientCertHandler) IssueNewClientCert(c *gin.Context) {
+func (h *ClientCertHandler) IssueNewClientCert(c echo.Context) error {
 	type Req struct {
 		ServerName string `json:"server_name" binding:"required"`
 		CommonName string `json:"common_name" binding:"required"`
 	}
 	var req Req
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": err.Error()})
 	}
 
 	if err := h.clientCertService.IssueNewClientCert(req.ServerName, req.CommonName); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
 	}
 
-	c.Status(http.StatusOK)
+	return c.NoContent(http.StatusOK)
 }

@@ -1,13 +1,13 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
-func RegisterHealthyCheck(router *gin.Engine) {
+func RegisterHealthyCheck(router *echo.Echo) {
 	// Health check endpoint
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	router.GET("/health", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, echo.Map{"status": "ok"})
 	})
 }

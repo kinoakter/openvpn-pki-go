@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/kinoakter/openvpn-pki-go/internal/domain/service"
+	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
@@ -16,23 +16,22 @@ func NewOVPNHandler(ovpnService *service.OVPNService) *OVPNHandler {
 	}
 }
 
-func (h *OVPNHandler) RegisterRoutes(router *gin.RouterGroup) {
+func (h *OVPNHandler) RegisterRoutes(router *echo.Group) {
 	router.GET("/server-config/:server", h.GetServerOVPNConfig)
 	router.GET("/client-config/:client_cn", h.GetClientOVPNConfig)
 }
 
-func (h *OVPNHandler) GetServerOVPNConfig(c *gin.Context) {
+func (h *OVPNHandler) GetServerOVPNConfig(c echo.Context) error {
 	serverName := c.Param("server")
 	config, err := h.ovpnService.GenerateServerOVPNConfig(serverName)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
 	}
 
-	c.String(http.StatusOK, config)
+	return c.String(http.StatusOK, config)
 }
 
-func (h *OVPNHandler) GetClientOVPNConfig(c *gin.Context) {
+func (h *OVPNHandler) GetClientOVPNConfig(c echo.Context) error {
 	//serverCN := c.Param("server_cn")
 	clientCN := c.Param("client_cn")
 
@@ -42,14 +41,13 @@ func (h *OVPNHandler) GetClientOVPNConfig(c *gin.Context) {
 	//}
 
 	if clientCN == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "client CN is required"})
-		return
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "client CN is required"})
 	}
 
 	config, errCfg := h.ovpnService.GenerateClientOVPNConfig(clientCN)
 	if errCfg != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errCfg.Error()})
-		return
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": errCfg.Error()})
 	}
-	c.String(http.StatusOK, config)
+
+	return c.String(http.StatusOK, config)
 }

@@ -4,7 +4,7 @@
 GET http://localhost:8080/health
 
 ### Create a new CA
-POST http://localhost:8080/ca
+POST http://localhost:8080/api/v1/ovpn/ca
 Content-Type: application/json
 
 {
@@ -13,7 +13,7 @@ Content-Type: application/json
 }
 
 ### Issue server certificate
-POST http://localhost:8080/server-cert
+POST http://localhost:8080/api/v1/ovpn/server-cert
 Content-Type: application/json
 
 {
@@ -21,7 +21,7 @@ Content-Type: application/json
 }
 
 ### Issue client certificate
-POST http://localhost:8080/client-cert
+POST http://localhost:8080/api/v1/ovpn/client-cert
 Content-Type: application/json
 
 {
@@ -30,7 +30,7 @@ Content-Type: application/json
 }
 
 ### Get full server OpenVPN config
-GET http://localhost:8080/ovpn/server-config/vpn-europe
+GET http://localhost:8080/api/v1/ovpn/server-config/vpn-europe
 
 ### Get full client OpenVPN config
-GET http://localhost:8080/ovpn/client-config/client-test-01
+GET http://localhost:8080/api/v1/ovpn/client-config/client-test-01

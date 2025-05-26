@@ -2,13 +2,13 @@ package app
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
 	"github.com/kinoakter/openvpn-pki-go/internal/api/handler"
 	"github.com/kinoakter/openvpn-pki-go/internal/config"
 	"github.com/kinoakter/openvpn-pki-go/internal/db/psql"
 	"github.com/kinoakter/openvpn-pki-go/internal/db/psql/repository"
 	"github.com/kinoakter/openvpn-pki-go/internal/domain/service"
 	"github.com/kinoakter/openvpn-pki-go/log"
+	"github.com/labstack/echo/v4"
 	agentHttp "gitlab.com/vpn-tube/vpt-agent/pkg/http"
 	"net/http"
 	"os/signal"
@@ -56,11 +56,8 @@ func (a *App) initApp() error {
 	clientCertService := service.NewClientCertificateService(a.ctx, clientCertRepository, caRepository, serverCertRepository)
 	ovpnService := service.NewOVPNService(a.ctx, caRepository, serverCertRepository, clientCertRepository)
 
-	gin.SetMode(gin.ReleaseMode)
-	//router := gin.Default()
-	router := gin.New()
+	router := echo.New()
 	openVpnRouter := router.Group("/api/v1/ovpn")
-	router.Use(agentHttp.LoggerMiddleware(), gin.Recovery())
 	handler.RegisterHealthyCheck(router)
 	handler.NewCAHandler(caService).RegisterRoutes(openVpnRouter)
 	handler.NewServerCertHandler(certificateService).RegisterRoutes(openVpnRouter)
