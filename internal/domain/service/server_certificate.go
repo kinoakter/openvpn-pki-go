@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/kinoakter/openvpn-pki-go/internal/domain/entity"
 	"github.com/kinoakter/openvpn-pki-go/internal/pki"
 )
@@ -43,8 +42,7 @@ func (s *ServerCertificateService) IssueNewServerCert(serverName string) error {
 	}
 
 	serverCert := &entity.ServerCert{
-		UUID:                uuid.New(),
-		Name:                serverName,
+		CommonName:          serverName,
 		Certificate:         string(certPEM),
 		PrivateKey:          string(keyPEM),
 		TlsCryptV2ServerKey: tlsCryptV2ServerKey,

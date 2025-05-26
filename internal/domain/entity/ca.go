@@ -1,10 +1,10 @@
 package entity
 
-import "github.com/google/uuid"
+import "time"
 
 type CA struct {
-	UUID        uuid.UUID
-	Name        string
+	CommonName  string
 	Certificate string
 	PrivateKey  string
+	CreatedAt   time.Time
 }

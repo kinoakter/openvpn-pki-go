@@ -1,0 +1,36 @@
+// File: internal/api/routes.http
+
+### Health check
+GET http://localhost:8080/health
+
+### Create a new CA
+POST http://localhost:8080/ca
+Content-Type: application/json
+
+{
+  "server_name": "vpn-europe",
+  "valid_years": 3
+}
+
+### Issue server certificate
+POST http://localhost:8080/server-cert
+Content-Type: application/json
+
+{
+  "server_name": "vpn-europe"
+}
+
+### Issue client certificate
+POST http://localhost:8080/client-cert
+Content-Type: application/json
+
+{
+  "server_name": "vpn-europe",
+  "common_name": "client-test-01"
+}
+
+### Get full server OpenVPN config
+GET http://localhost:8080/ovpn/server-config/vpn-europe
+
+### Get full client OpenVPN config
+GET http://localhost:8080/ovpn/client-config/client-test-01

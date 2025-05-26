@@ -1,0 +1,23 @@
+services:
+  ovpn_udp0:
+    image: viktorvorobei/ovpn:0.0.1
+    container_name: ovpn_udp0
+    restart: unless-stopped
+    stop_grace_period: 1m
+    ports:
+      - "2443:443/udp"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /var/log/ovpn:/etc/openvpn/logs:rw
+      - /etc/openvpn:/etc/openvpn:rw
+    environment:
+      TUN_DEV: "udp0"
+    cap_add:
+      #      - NET_ADMIN
+      - ALL
+    network_mode: host
+    #    networks:
+    #      - local_net
+    devices:
+      - /dev/net/tun:/dev/net/tun

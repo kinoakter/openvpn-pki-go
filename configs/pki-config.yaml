@@ -1,0 +1,9 @@
+DatabaseURL: postgres://pkiuser:pkipassword@localhost:5432/openvpn_pki?sslmode=disable
+VptAgent:
+  http:
+    bind: "0.0.0.0:8080"
+    secure: false
+    timeout:
+      read: 10s
+      write: 10s
+      idle: 60s

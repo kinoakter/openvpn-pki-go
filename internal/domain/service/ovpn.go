@@ -38,7 +38,6 @@ data-ciphers AES-256-GCM:AES-128-GCM:CHACHA20-POLY1305
 data-ciphers-fallback AES-256-GCM
 auth none
 dh none
-
 `
 
 const ClientConfigTemplate = `
@@ -65,7 +64,6 @@ preresolve
 data-ciphers CHACHA20-POLY1305
 data-ciphers-fallback AES-256-GCM
 auth none
-
 `
 
 type OVPNService struct {
@@ -102,19 +100,17 @@ func (s *OVPNService) GenerateServerOVPNConfig(serverName string) (string, error
 	}
 
 	// Format the OpenVPN config string with embedded blocks
-	return fmt.Sprintf(`# OpenVPN Server Configuration
+	return fmt.Sprintf(`# Generated OpenVPN Server Configuration
 %s
 <cert>
 %s</cert>
-
 <key>
 %s</key>
-
 <ca>
 %s</ca>
-
 <tls-crypt-v2>
-%s</tls-crypt-v2>
+%s
+</tls-crypt-v2>
 `, ServerConfigTemplate,
 		serverCert.Certificate,
 		serverCert.PrivateKey,
@@ -130,25 +126,22 @@ func (s *OVPNService) GenerateClientOVPNConfig(commonName string) (string, error
 		return "", fmt.Errorf("failed to load client cert by common name %s: %v", commonName, err)
 	}
 
-	ca, caErr := s.caRepository.LoadByServerName(s.ctx, cliCert.ServerName)
+	ca, caErr := s.caRepository.LoadByServerName(s.ctx, cliCert.ServerCommonName)
 	if caErr != nil {
-		return "", fmt.Errorf("failed to load CA by server name %s: %v", cliCert.ServerName, caErr)
+		return "", fmt.Errorf("failed to load CA by server name %s: %v", cliCert.ServerCommonName, caErr)
 	}
 
 	// Format the OpenVPN config string with embedded blocks
-	clientConfig := fmt.Sprintf(`
-%s
+	clientConfig := fmt.Sprintf(`%s
 <cert>
 %s</cert>
-
 <key>
 %s</key>
-
 <ca>
 %s</ca>
-
 <tls-crypt-v2>
-%s</tls-crypt-v2>
+%s
+</tls-crypt-v2>
 `, ClientConfigTemplate,
 		cliCert.Certificate,
 		cliCert.PrivateKey,

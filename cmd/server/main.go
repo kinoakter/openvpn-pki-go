@@ -1,22 +1,16 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/kinoakter/openvpn-pki-go/internal/api"
-	"github.com/kinoakter/openvpn-pki-go/internal/config"
-	"github.com/kinoakter/openvpn-pki-go/internal/db"
+	"github.com/kinoakter/openvpn-pki-go/internal/app"
 	"log"
 )
 
 func main() {
-	cfg := config.Load()
-	db.Connect(cfg)
+	a := app.NewApp()
 
-	router := gin.Default()
-	api.SetupRoutes(router)
-
-	if err := router.Run(":8080"); err != nil {
+	if err := a.Run(); err != nil {
 		log.Fatalf("Failed to run server: %v", err)
 	}
 
+	a.WaitForExit()
 }

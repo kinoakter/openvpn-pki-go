@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16.2-alpine
+    container_name: openvpn-pki-db
+    restart: always
+    environment:
+      POSTGRES_DB: openvpn_pki
+      POSTGRES_USER: pkiuser
+      POSTGRES_PASSWORD: pkipassword
+    ports:
+      - "5432:5432"
+#    volumes:
+#      - pki-db-data:/var/lib/postgresql/data
+
+#volumes:
+#  pki-db-data:

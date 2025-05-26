@@ -1,12 +1,13 @@
 package entity
 
-import "github.com/google/uuid"
+import "time"
 
 type ClientCert struct {
-	UUID                uuid.UUID
 	CommonName          string
+	ServerCommonName    string
 	Certificate         string
 	PrivateKey          string
 	TlsCryptV2ClientKey string
-	ServerName          string
+	ExpiresAt           time.Time
+	CreatedAt           time.Time
 }

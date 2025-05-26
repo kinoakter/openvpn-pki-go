@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/kinoakter/openvpn-pki-go/internal/domain/entity"
 	"github.com/kinoakter/openvpn-pki-go/internal/pki"
+	"time"
 )
 
 type ClientCertificateRepository interface {
@@ -44,24 +44,25 @@ func (s *ClientCertificateService) IssueNewClientCert(serverName, clientCommonNa
 		return fmt.Errorf("failed to load server cert by server name %s: %v", serverName, srvLoadErr)
 	}
 
+	expiresAt := time.Now().AddDate(0, 0, pki.DefaultClientCertValidityDays).UTC()
 	certPEM, keyPEM, tlsCryptV2ClientKey, cliCertErr := pki.IssueClientCertificate(
 		ca.Certificate,
 		ca.PrivateKey,
 		serverCert.TlsCryptV2ServerKey,
 		clientCommonName,
-		pki.DefaultClientCertValidityDays,
+		expiresAt,
 	)
 	if cliCertErr != nil {
 		return fmt.Errorf("failed to create client cert: %v", cliCertErr)
 	}
 
 	clientCert := &entity.ClientCert{
-		UUID:                uuid.New(),
 		CommonName:          clientCommonName,
+		ServerCommonName:    serverName,
 		Certificate:         string(certPEM),
 		PrivateKey:          string(keyPEM),
 		TlsCryptV2ClientKey: tlsCryptV2ClientKey,
-		ServerName:          serverName,
+		ExpiresAt:           expiresAt,
 	}
 
 	_, saveErr := s.repository.Save(s.ctx, clientCert)

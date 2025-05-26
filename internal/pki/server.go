@@ -21,7 +21,7 @@ const DefaultServerCertValidityYears = 2
 // It creates an ECDSA keypair and issues a certificate valid for server authentication.
 //
 // Parameters:
-//   - serverName: Name of the server to be used in the certificate's Common Name
+//   - serverName: CommonName of the server to be used in the certificate's Common CommonName
 //   - caCertPEM: PEM-encoded CA certificate used to sign the server certificate
 //   - caKeyPEM: PEM-encoded CA private key used for signing
 //   - validYears: Number of years the certificate will be valid for (defaults to DefaultServerCertValidityYears if 0)
@@ -77,8 +77,8 @@ func IssueServerCertificate(serverName, caCertPEM, caKeyPEM string, validYears i
 		Subject: pkix.Name{
 			CommonName: serverName + "-server",
 		},
-		NotBefore: time.Now(),
-		NotAfter:  time.Now().AddDate(validYears, 0, 0),
+		NotBefore: time.Now().UTC(),
+		NotAfter:  time.Now().AddDate(validYears, 0, 0).UTC(),
 		KeyUsage:  x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
 		ExtKeyUsage: []x509.ExtKeyUsage{
 			x509.ExtKeyUsageServerAuth,

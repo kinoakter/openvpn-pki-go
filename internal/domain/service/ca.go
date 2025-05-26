@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"github.com/kinoakter/openvpn-pki-go/internal/domain/entity"
 	"github.com/kinoakter/openvpn-pki-go/internal/pki"
 	"github.com/kinoakter/openvpn-pki-go/log"
@@ -33,8 +32,7 @@ func (s *CAService) CreateCA(serverName string, validYears int) error {
 	}
 
 	_, saveErr := s.caRepo.Save(s.ctx, &entity.CA{
-		UUID:        uuid.New(),
-		Name:        serverName,
+		CommonName:  serverName,
 		Certificate: string(certPEM),
 		PrivateKey:  string(keyPEM),
 	})

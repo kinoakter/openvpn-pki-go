@@ -35,5 +35,5 @@ func ExecCommand(command string, arg ...string) (string, error) {
 		return "", errors.New(errStr)
 	}
 
-	return out.String(), nil
+	return strings.Trim(out.String(), "\n"), nil
 }

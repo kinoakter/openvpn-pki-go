@@ -49,8 +49,8 @@ func CreateCACert(commonName string, validYears int) (certPEM, keyPEM []byte, er
 	template := &x509.Certificate{
 		SerialNumber:          new(big.Int).SetBytes(serial[:20]),
 		Subject:               pkix.Name{CommonName: commonName},
-		NotBefore:             time.Now(),
-		NotAfter:              time.Now().AddDate(validYears, 0, 0),
+		NotBefore:             time.Now().UTC(),
+		NotAfter:              time.Now().AddDate(validYears, 0, 0).UTC(),
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 		BasicConstraintsValid: true,
 		IsCA:                  true,

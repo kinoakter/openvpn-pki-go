@@ -25,7 +25,7 @@ const DefaultClientCertValidityDays = 1
 //   - caKeyPEM: PEM-encoded CA private key used for signing
 //   - tlsCryptV2ServerKey: Server's TLS-Crypt-v2 key used to generate client specific key
 //   - clientCommonName: Common Name (CN) to be used in the client certificate
-//   - validDays: Number of days the certificate will be valid for
+//   - expiresAt: Time when the certificate will expire
 //
 // Returns:
 //   - certPEM: PEM-encoded client certificate
@@ -38,7 +38,14 @@ const DefaultClientCertValidityDays = 1
 //  2. Generates a new ECDSA keypair for the client
 //  3. Creates and signs the client certificate using the CA
 //  4. Generates a client-specific TLS-Crypt-v2 key
-func IssueClientCertificate(caCertPEM, caKeyPEM, tlsCryptV2ServerKey, clientCommonName string, validDays int) (certPEM, keyPEM []byte, tlsCryptV2ClientKey string, err error) {
+func IssueClientCertificate(
+	caCertPEM,
+	caKeyPEM,
+	tlsCryptV2ServerKey,
+	clientCommonName string,
+	expiresAt time.Time,
+) (certPEM, keyPEM []byte, tlsCryptV2ClientKey string, err error) {
+
 	// Decode CA certificate
 	caCert, caParseErr := parseCertificate(caCertPEM)
 	if caParseErr != nil {
@@ -67,8 +74,8 @@ func IssueClientCertificate(caCertPEM, caKeyPEM, tlsCryptV2ServerKey, clientComm
 		Subject: pkix.Name{
 			CommonName: clientCommonName,
 		},
-		NotBefore: time.Now(),
-		NotAfter:  time.Now().AddDate(0, 0, validDays),
+		NotBefore: time.Now().UTC(),
+		NotAfter:  expiresAt.UTC(),
 		KeyUsage:  x509.KeyUsageDigitalSignature,
 		ExtKeyUsage: []x509.ExtKeyUsage{
 			x509.ExtKeyUsageClientAuth,

@@ -29,7 +29,7 @@ func GenerateTlsCryptV2ServerKey() (tlsCryptV2ServerKey string, err error) {
 //
 // Parameters:
 //   - serverKey: The server's TLS-Crypt-v2 key used as base for generation
-//   - clientName: Name of the client for which the key is being generated
+//   - clientName: CommonName of the client for which the key is being generated
 //
 // Returns:
 //   - tlsCryptV2ClientKey: Generated client-specific key as a string
