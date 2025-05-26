@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/kinoakter/openvpn-pki-go/internal/api/mapper"
 	"github.com/kinoakter/openvpn-pki-go/internal/domain/service"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -18,6 +19,7 @@ func NewClientCertHandler(service *service.ClientCertificateService) *ClientCert
 
 func (h *ClientCertHandler) RegisterRoutes(router *echo.Group) {
 	router.POST("/client-cert", h.IssueNewClientCert)
+	router.GET("/client/:commonName", h.GetClientCert)
 }
 
 func (h *ClientCertHandler) IssueNewClientCert(c echo.Context) error {
@@ -35,4 +37,15 @@ func (h *ClientCertHandler) IssueNewClientCert(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusOK)
+}
+
+func (h *ClientCertHandler) GetClientCert(c echo.Context) error {
+	commonName := c.Param("commonName")
+	cert, ca, err := h.clientCertService.GetClientCertMaterials(commonName)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
+	}
+
+	response := mapper.ToClientCertsResponse(cert, ca)
+	return c.JSON(http.StatusOK, response)
 }

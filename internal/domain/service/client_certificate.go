@@ -72,3 +72,17 @@ func (s *ClientCertificateService) IssueNewClientCert(serverName, clientCommonNa
 
 	return nil
 }
+
+func (s *ClientCertificateService) GetClientCertMaterials(commonName string) (*entity.ClientCert, *entity.CA, error) {
+	cliCert, err := s.repository.LoadByCommonName(s.ctx, commonName)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to load client cert by common name %s: %v", commonName, err)
+	}
+
+	ca, caErr := s.caRepository.LoadByServerName(s.ctx, cliCert.ServerCommonName)
+	if caErr != nil {
+		return nil, nil, fmt.Errorf("failed to load CA by server name %s: %v", cliCert.ServerCommonName, caErr)
+	}
+
+	return cliCert, ca, nil
+}
